@@ -9,13 +9,13 @@ public class World : MonoBehaviour {
 	}
 
 	public Block[,,] data;
-	public int worldX = 16;
-	public int worldY = 16;
-	public int worldZ = 16;
+	public static int worldX = 16;
+	public static int worldY = 16;
+	public static int worldZ = 16;
 
 	public GameObject chunk;
 	public GameObject[,,] chunks;
-	public int chunkSize = 16;
+	public static int chunkSize = 16;
 
 	// Use this for initialization
 	void Start () {
