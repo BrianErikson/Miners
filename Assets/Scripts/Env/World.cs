@@ -9,9 +9,9 @@ public class World : MonoBehaviour {
 	}
 
 	public Block[,,] data;
-	public static int worldX = 16;
-	public static int worldY = 16;
-	public static int worldZ = 16;
+	public static int worldX = 64;
+	public static int worldY = 64;
+	public static int worldZ = 64;
 
 	public GameObject chunk;
 	public GameObject[,,] chunks;
