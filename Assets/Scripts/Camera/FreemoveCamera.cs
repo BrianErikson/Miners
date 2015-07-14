@@ -5,6 +5,9 @@ public class FreemoveCamera : MonoBehaviour {
 	public static int MOVE_SPEED = 10;
 	private static Object blockPrefab = Resources.Load("BlockPrototype04x04x04");
 
+	Vector3 lastMousePos = new Vector3(0,0);
+	bool mouseDown = false;
+
 	// Use this for initialization
 	void Start () {
 		transform.Translate(20f, 25f, 0f);
@@ -14,6 +17,7 @@ public class FreemoveCamera : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		UpdateMovement();
+		UpdateMouselook();
 		UpdateActions();
 	}
 
@@ -47,33 +51,18 @@ public class FreemoveCamera : MonoBehaviour {
 		else if (Input.GetKey(KeyCode.A)) {
 			transform.Translate(-deltaSpeed, 0f, 0f);
 		}
-		
-		if (Input.GetKey(KeyCode.LeftShift)) {
-			transform.Translate(0f, deltaSpeed, 0f);
-		}
-		else if (Input.GetKey(KeyCode.LeftControl)) {
-			transform.Translate(0f, -deltaSpeed, 0f);
-		}
-		
-		if (Input.GetKey(KeyCode.R)) {
-			transform.Rotate(new Vector3(deltaSpeed, 0f));
-		}
-		else if (Input.GetKey(KeyCode.F)) {
-			transform.Rotate(new Vector3(-deltaSpeed, 0f));
-		}
-		
-		if (Input.GetKey(KeyCode.E)) {
-			transform.Rotate(new Vector3(0f, deltaSpeed, 0f));
-		}
-		else if (Input.GetKey(KeyCode.Q)) {
-			transform.Rotate(new Vector3(0f, -deltaSpeed, 0f));
-		}
-		
-		if (Input.GetKey(KeyCode.C)) {
-			transform.Rotate(new Vector3(0f, 0f, deltaSpeed));
-		}
-		else if (Input.GetKey(KeyCode.X)) {
-			transform.Rotate(new Vector3(0f, 0f, -deltaSpeed));
+	}
+
+	void UpdateMouselook() {
+		if (Input.GetMouseButtonDown(0)) mouseDown = true;
+		else if (Input.GetMouseButtonUp(0)) mouseDown = false;
+
+		if (mouseDown) {
+			Vector3 deltaPos = Input.mousePosition - lastMousePos;
+			lastMousePos = Input.mousePosition;
+			
+			transform.Rotate(new Vector3(-deltaPos.y, deltaPos.x));
+			transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0f);
 		}
 	}
 }
