@@ -161,7 +161,7 @@ public class Chunk : MonoBehaviour {
 		faceCount++;
 	}
 
-	void GenerateMesh() {
+	public void GenerateMesh() {
 		for (int x = 0; x < chunkSize; x++) {
 			for (int y = 0; y < chunkSize; y++) {
 				for (int z = 0; z < chunkSize; z++) {

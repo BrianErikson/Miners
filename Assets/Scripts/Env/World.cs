@@ -35,26 +35,49 @@ public class World : MonoBehaviour {
 		}
 
 		chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
+		GenerateChunks();
+	}
 
+	void GenerateChunks() {
 		for (int x = 0; x < chunks.GetLength(0); x++) {
 			for (int y = 0; y < chunks.GetLength(1); y++) {
 				for (int z = 0; z < chunks.GetLength(2); z++) {
-					chunks[x, y, z] = Instantiate (chunk, new Vector3(x*chunkSize, y*chunkSize, z*chunkSize), new Quaternion(0,0,0,0)) as GameObject;
-
-					Chunk newChunkScript = chunks[x,y,z].GetComponent("Chunk") as Chunk;
-					newChunkScript.worldGO = this.gameObject;
-					newChunkScript.chunkSize = chunkSize;
-					newChunkScript.chunkX = x * chunkSize;
-					newChunkScript.chunkY = y * chunkSize;
-					newChunkScript.chunkZ = z * chunkSize;
+					chunks[x, y, z] = GenerateChunk(x, y, z);
 				}
 			}
 		}
+	}
+
+	GameObject GenerateChunk(int x, int y, int z) {
+		GameObject go = Instantiate(chunk, new Vector3(x*chunkSize, y*chunkSize, z*chunkSize), new Quaternion(0,0,0,0)) as GameObject;
+		
+		Chunk newChunkScript = go.GetComponent("Chunk") as Chunk;
+		newChunkScript.worldGO = this.gameObject;
+		newChunkScript.chunkSize = chunkSize;
+		newChunkScript.chunkX = x * chunkSize;
+		newChunkScript.chunkY = y * chunkSize;
+		newChunkScript.chunkZ = z * chunkSize;
+
+		return go;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
+	}
+
+	public void RemoveBlock(int x, int y, int z) {
+		if( x>=worldX || x<0 || y>=worldY || y<0 || z>=worldZ || z<0){
+			return;
+		}
+
+		data[x,y,z] = Block.AIR;
+
+		int chunkX = Mathf.FloorToInt(x / chunkSize);
+		int chunkY = Mathf.FloorToInt(y / chunkSize);
+		int chunkZ = Mathf.FloorToInt(z / chunkSize);
+		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
+		chunk.GenerateMesh();
 	}
 
 	public Block GetBlock(int x, int y, int z){
