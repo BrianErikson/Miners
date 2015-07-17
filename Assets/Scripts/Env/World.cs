@@ -19,6 +19,8 @@ public class World : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		Application.targetFrameRate = 60;
+
 		data = new Block[worldX, worldY, worldZ];
 	
 		for (int x = 0; x < worldX; x++) {
@@ -78,6 +80,7 @@ public class World : MonoBehaviour {
 		int chunkZ = Mathf.FloorToInt(z / chunkSize);
 		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
 		chunk.GenerateMesh();
+		Debug.Log("Removed block " + x + " " + y + " " + z);
 	}
 
 	public Block GetBlock(int x, int y, int z){
