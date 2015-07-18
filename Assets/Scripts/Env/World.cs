@@ -37,6 +37,7 @@ public class World : NetworkBehaviour {
 		}
 
 		if (isClient) {
+			Cursor.lockState = CursorLockMode.Locked;
 			chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
 			GenerateChunks();
 		}
@@ -77,7 +78,7 @@ public class World : NetworkBehaviour {
 		try {
 			if (data[x, y, z] != Block.AIR) {
 				data[x,y,z] = Block.AIR;
-				Debug.Log("Server Removed block " + x + " " + y + " " + z);
+				//Debug.Log("Server Removed block " + x + " " + y + " " + z);
 
 				RpcRemoveBlock(x, y, z);
 			}
@@ -99,13 +100,13 @@ public class World : NetworkBehaviour {
 		int chunkZ = Mathf.FloorToInt(z / chunkSize);
 		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
 		chunk.GenerateMesh();
-		Debug.Log("Client Removed block " + x + " " + y + " " + z);
+		//Debug.Log("Client Removed block " + x + " " + y + " " + z);
 	}
 
 	public Block GetBlock(int x, int y, int z){
 		
 		if( x>=worldX || x<0 || y>=worldY || y<0 || z>=worldZ || z<0){
-			return Block.ROCK;
+			return Block.AIR;
 		}
 		
 		return data[x,y,z];
