@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
+using UnityEngine.Networking;
 
-public class World : MonoBehaviour {
+public class World : NetworkBehaviour {
 	public enum Block {
 		AIR,
 		ROCK,
@@ -36,10 +36,13 @@ public class World : MonoBehaviour {
 			}
 		}
 
-		chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
-		GenerateChunks();
+		if (isClient) {
+			chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
+			GenerateChunks();
+		}
 	}
 
+	[Client]
 	void GenerateChunks() {
 		for (int x = 0; x < chunks.GetLength(0); x++) {
 			for (int y = 0; y < chunks.GetLength(1); y++) {
@@ -50,6 +53,7 @@ public class World : MonoBehaviour {
 		}
 	}
 
+	[Client]
 	GameObject GenerateChunk(int x, int y, int z) {
 		GameObject go = Instantiate(chunk, new Vector3(x*chunkSize, y*chunkSize, z*chunkSize), new Quaternion(0,0,0,0)) as GameObject;
 		
@@ -65,22 +69,37 @@ public class World : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+
 	}
 
-	public void RemoveBlock(int x, int y, int z) {
-		if( x>=worldX || x<0 || y>=worldY || y<0 || z>=worldZ || z<0){
+	[Command]
+	public void CmdRemoveBlock(int x, int y, int z) {
+		try {
+			if (data[x, y, z] != Block.AIR) {
+				data[x,y,z] = Block.AIR;
+				Debug.Log("Server Removed block " + x + " " + y + " " + z);
+
+				RpcRemoveBlock(x, y, z);
+			}
+			else {
+				Debug.LogError("Server could not remove block " + x + " " + y + " " + z + ". The block is air");
+			}
+		}
+		catch (System.IndexOutOfRangeException e) {
+			Debug.LogError("Server could not remove block " + x + " " + y + " " + z + ". " + e.Message);
 			return;
 		}
-
-		data[x,y,z] = Block.AIR;
-
+	}
+	
+	[ClientRpc]
+	public void RpcRemoveBlock(int x, int y, int z) {
+		data[x,y,z] = Block.AIR; // Sync for client
 		int chunkX = Mathf.FloorToInt(x / chunkSize);
 		int chunkY = Mathf.FloorToInt(y / chunkSize);
 		int chunkZ = Mathf.FloorToInt(z / chunkSize);
 		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
 		chunk.GenerateMesh();
-		Debug.Log("Removed block " + x + " " + y + " " + z);
+		Debug.Log("Client Removed block " + x + " " + y + " " + z);
 	}
 
 	public Block GetBlock(int x, int y, int z){
@@ -92,7 +111,7 @@ public class World : MonoBehaviour {
 		return data[x,y,z];
 	}
 
-	int PerlinNoise(int x, int y, int z, float scale, float height, float power) {
+	static int PerlinNoise(int x, int y, int z, float scale, float height, float power) {
 		float rValue = Noise.GetNoise (((double)x) / scale, ((double)y) / scale, ((double)z) / scale);
 		rValue *= height;
 

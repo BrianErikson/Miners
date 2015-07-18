@@ -43,7 +43,7 @@ public class FreemoveCamera : MonoBehaviour {
 					int z = Mathf.FloorToInt(hit.point.z);
 
 					World script = world.GetComponent("World") as World;
-					script.RemoveBlock(x, y, z);
+					script.CmdRemoveBlock(x, y, z);
 				}
 			}
 		}
