@@ -95,11 +95,53 @@ public class World : NetworkBehaviour {
 	[ClientRpc]
 	public void RpcRemoveBlock(int x, int y, int z) {
 		data[x,y,z] = Block.AIR; // Sync for client
-		int chunkX = Mathf.FloorToInt(x / chunkSize);
-		int chunkY = Mathf.FloorToInt(y / chunkSize);
-		int chunkZ = Mathf.FloorToInt(z / chunkSize);
+
+		float dx = (float)x / (float)chunkSize;
+		float dy = (float)y / (float)chunkSize;
+		float dz = (float)z / (float)chunkSize;
+
+		int chunkX = Mathf.FloorToInt(dx);
+		int chunkY = Mathf.FloorToInt(dy);
+		int chunkZ = Mathf.FloorToInt(dz);
+
+		// regenerate chunk that contains block
 		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
 		chunk.GenerateMesh();
+
+		// if on edge of chunk, regenerate neighboring chunk
+		if (dx % 1 < Mathf.Epsilon && chunkX > 0) {
+			Debug.Log("Regenerating chunk x-axis neighbor");
+			chunk = chunks[chunkX - 1, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dy % 1 < Mathf.Epsilon && chunkY > 0) {
+			Debug.Log("Regenerating chunk y-axis neighbor");
+			chunk = chunks[chunkX, chunkY - 1, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dz % 1 < Mathf.Epsilon && chunkZ > 0) {
+			Debug.Log("Regenerating chunk z-axis neighbor");
+			chunk = chunks[chunkX, chunkY, chunkZ - 1].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+
+		if (dx + 1 % 1 < Mathf.Epsilon && chunkX > 0) {
+			Debug.Log("Regenerating chunk x-axis neighbor");
+			chunk = chunks[chunkX + 1, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dy + 1 % 1 < Mathf.Epsilon && chunkY > 0) {
+			Debug.Log("Regenerating chunk y-axis neighbor");
+			chunk = chunks[chunkX, chunkY + 1, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dz + 1 % 1 < Mathf.Epsilon && chunkZ > 0) {
+			Debug.Log("Regenerating chunk z-axis neighbor");
+			chunk = chunks[chunkX, chunkY, chunkZ + 1].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+
+
 		//Debug.Log("Client Removed block " + x + " " + y + " " + z);
 	}
 

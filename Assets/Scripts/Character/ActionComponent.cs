@@ -32,7 +32,6 @@ public class ActionComponent : NetworkBehaviour {
 		if (Physics.Raycast(ray, out hit)) {
 			GameObject obj = hit.transform.gameObject;
 			if (obj.CompareTag("Chunk")) {
-				Debug.Log("hit point " + hit.point.x + " " + hit.point.y + " " + hit.point.z);
 				int x = Mathf.FloorToInt(hit.point.x);
 				int y = Mathf.FloorToInt(hit.point.y);
 				int z = Mathf.FloorToInt(hit.point.z);
@@ -64,7 +63,12 @@ public class ActionComponent : NetworkBehaviour {
 						x -= 1;
 					}
 				}
-				Debug.Log("block conversion: " + x + " " + y + " " + z);
+
+				if (x < 0) x = 0;
+				if (y < 0) y = 0;
+				if (z < 0) z = 0;
+
+				Debug.Log("digging block: " + x + " " + y + " " + z);
 
 				world.CmdRemoveBlock(x, y, z);
 			}
