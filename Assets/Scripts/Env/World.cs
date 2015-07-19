@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
+using UnityEngine.Networking;
 
-public class World : MonoBehaviour {
+public class World : NetworkBehaviour {
 	public enum Block {
 		AIR,
 		ROCK,
@@ -19,6 +19,8 @@ public class World : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		Application.targetFrameRate = 60;
+
 		data = new Block[worldX, worldY, worldZ];
 	
 		for (int x = 0; x < worldX; x++) {
@@ -34,10 +36,14 @@ public class World : MonoBehaviour {
 			}
 		}
 
-		chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
-		GenerateChunks();
+		if (isClient) {
+			Cursor.lockState = CursorLockMode.Locked;
+			chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
+			GenerateChunks();
+		}
 	}
 
+	[Client]
 	void GenerateChunks() {
 		for (int x = 0; x < chunks.GetLength(0); x++) {
 			for (int y = 0; y < chunks.GetLength(1); y++) {
@@ -48,6 +54,7 @@ public class World : MonoBehaviour {
 		}
 	}
 
+	[Client]
 	GameObject GenerateChunk(int x, int y, int z) {
 		GameObject go = Instantiate(chunk, new Vector3(x*chunkSize, y*chunkSize, z*chunkSize), new Quaternion(0,0,0,0)) as GameObject;
 		
@@ -63,33 +70,91 @@ public class World : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+
 	}
 
-	public void RemoveBlock(int x, int y, int z) {
-		if( x>=worldX || x<0 || y>=worldY || y<0 || z>=worldZ || z<0){
+	[Command]
+	public void CmdRemoveBlock(int x, int y, int z) {
+		try {
+			if (data[x, y, z] != Block.AIR) {
+				data[x,y,z] = Block.AIR;
+				//Debug.Log("Server Removed block " + x + " " + y + " " + z);
+
+				RpcRemoveBlock(x, y, z);
+			}
+			else {
+				Debug.LogError("Server could not remove block " + x + " " + y + " " + z + ". The block is air");
+			}
+		}
+		catch (System.IndexOutOfRangeException e) {
+			Debug.LogError("Server could not remove block " + x + " " + y + " " + z + ". " + e.Message);
 			return;
 		}
+	}
+	
+	[ClientRpc]
+	public void RpcRemoveBlock(int x, int y, int z) {
+		data[x,y,z] = Block.AIR; // Sync for client
 
-		data[x,y,z] = Block.AIR;
+		float dx = (float)x / (float)chunkSize;
+		float dy = (float)y / (float)chunkSize;
+		float dz = (float)z / (float)chunkSize;
 
-		int chunkX = Mathf.FloorToInt(x / chunkSize);
-		int chunkY = Mathf.FloorToInt(y / chunkSize);
-		int chunkZ = Mathf.FloorToInt(z / chunkSize);
+		int chunkX = Mathf.FloorToInt(dx);
+		int chunkY = Mathf.FloorToInt(dy);
+		int chunkZ = Mathf.FloorToInt(dz);
+
+		// regenerate chunk that contains block
 		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
 		chunk.GenerateMesh();
+
+		// if on edge of chunk, regenerate neighboring chunk
+		if (dx % 1 < Mathf.Epsilon && chunkX > 0) {
+			Debug.Log("Regenerating chunk x-axis neighbor");
+			chunk = chunks[chunkX - 1, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dy % 1 < Mathf.Epsilon && chunkY > 0) {
+			Debug.Log("Regenerating chunk y-axis neighbor");
+			chunk = chunks[chunkX, chunkY - 1, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dz % 1 < Mathf.Epsilon && chunkZ > 0) {
+			Debug.Log("Regenerating chunk z-axis neighbor");
+			chunk = chunks[chunkX, chunkY, chunkZ - 1].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+
+		if (dx + 1 % 1 < Mathf.Epsilon && chunkX > 0) {
+			Debug.Log("Regenerating chunk x-axis neighbor");
+			chunk = chunks[chunkX + 1, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dy + 1 % 1 < Mathf.Epsilon && chunkY > 0) {
+			Debug.Log("Regenerating chunk y-axis neighbor");
+			chunk = chunks[chunkX, chunkY + 1, chunkZ].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+		if (dz + 1 % 1 < Mathf.Epsilon && chunkZ > 0) {
+			Debug.Log("Regenerating chunk z-axis neighbor");
+			chunk = chunks[chunkX, chunkY, chunkZ + 1].GetComponent("Chunk") as Chunk;
+			chunk.GenerateMesh();
+		}
+
+
+		//Debug.Log("Client Removed block " + x + " " + y + " " + z);
 	}
 
 	public Block GetBlock(int x, int y, int z){
 		
 		if( x>=worldX || x<0 || y>=worldY || y<0 || z>=worldZ || z<0){
-			return Block.ROCK;
+			return Block.AIR;
 		}
 		
 		return data[x,y,z];
 	}
 
-	int PerlinNoise(int x, int y, int z, float scale, float height, float power) {
+	static int PerlinNoise(int x, int y, int z, float scale, float height, float power) {
 		float rValue = Noise.GetNoise (((double)x) / scale, ((double)y) / scale, ((double)z) / scale);
 		rValue *= height;
 

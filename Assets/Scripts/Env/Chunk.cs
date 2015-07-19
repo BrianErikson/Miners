@@ -165,20 +165,21 @@ public class Chunk : MonoBehaviour {
 		for (int x = 0; x < chunkSize; x++) {
 			for (int y = 0; y < chunkSize; y++) {
 				for (int z = 0; z < chunkSize; z++) {
-					if (GetBlock(x, y, z) != World.Block.AIR) {
+					World.Block curBlock = GetBlock(x, y, z);
+					if (curBlock != World.Block.AIR) {
 						// Checking for exposed sides
 						//above
-						if (GetBlock(x, y + 1, z) == World.Block.AIR) CubeTop(x, y, z, GetBlock(x, y, z));
+						if (GetBlock(x, y + 1, z) == World.Block.AIR) CubeTop(x, y, z, curBlock);
 						//below
-						if (GetBlock(x, y - 1, z) == World.Block.AIR) CubeBot(x, y, z, GetBlock(x, y, z));
+						if (GetBlock(x, y - 1, z) == World.Block.AIR) CubeBot(x, y, z, curBlock);
 						//east
-						if (GetBlock(x + 1, y, z) == World.Block.AIR) CubeEast(x, y, z, GetBlock(x, y, z));
+						if (GetBlock(x + 1, y, z) == World.Block.AIR) CubeEast(x, y, z, curBlock);
 						//west
-						if (GetBlock(x - 1, y, z) == World.Block.AIR) CubeWest(x, y, z, GetBlock(x, y, z));
+						if (GetBlock(x - 1, y, z) == World.Block.AIR) CubeWest(x, y, z, curBlock);
 						//north
-						if (GetBlock(x, y, z + 1) == World.Block.AIR) CubeNorth(x, y, z, GetBlock(x, y, z));
+						if (GetBlock(x, y, z + 1) == World.Block.AIR) CubeNorth(x, y, z, curBlock);
 						//south
-						if (GetBlock(x, y, z - 1) == World.Block.AIR) CubeSouth(x, y, z, GetBlock(x, y, z));
+						if (GetBlock(x, y, z - 1) == World.Block.AIR) CubeSouth(x, y, z, curBlock);
 					}
 				}
 			}
