@@ -34,45 +34,11 @@ public class ActionComponent : NetworkBehaviour {
 			GameObject obj = hit.transform.gameObject;
 			Debug.Log(obj.name);
 			if (obj.CompareTag("Chunk")) {
-				int x = Mathf.FloorToInt(hit.point.x);
-				int y = Mathf.FloorToInt(hit.point.y);
-				int z = Mathf.FloorToInt(hit.point.z);
+				Vector3 blockCoord = Chunk.GetHitBlock(hit);
 
-				// FB
-				if (Mathf.Approximately(hit.point.z, z)) {
-					y += 1;
+				Debug.Log("digging block: " + blockCoord.x + " " + blockCoord.y + " " + blockCoord.z);
 
-					// Back
-					if (world.GetBlock(x, y, z) == World.Block.AIR) {
-						z -= 1;
-					}
-				}
-
-				// NS
-				else if (Mathf.Approximately(hit.point.y, y)) {
-					// North
-					if (world.GetBlock(x, y, z) == World.Block.AIR) {
-						y -= 1;
-					}
-				}
-
-				// EW
-				else if (Mathf.Approximately(hit.point.x, x)) {
-					y += 1;
-
-					// East
-					if (world.GetBlock(x, y, z) == World.Block.AIR) {
-						x -= 1;
-					}
-				}
-
-				if (x < 0) x = 0;
-				if (y < 0) y = 0;
-				if (z < 0) z = 0;
-
-				Debug.Log("digging block: " + x + " " + y + " " + z);
-
-				world.CmdRemoveBlock(x, y, z);
+				world.CmdRemoveBlock((int)blockCoord.x, (int)blockCoord.y, (int)blockCoord.z);
 			}
 		}
 	}

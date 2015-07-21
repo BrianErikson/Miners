@@ -14,6 +14,7 @@ public class Chunk : MonoBehaviour {
 	private Vector2 tStone = new Vector2(0,0);
 	private Vector2 tGrass = new Vector2(0,1);
 	private Vector2 tGrassTop = new Vector2(1,1);
+	private Vector2 tGrassBot = new Vector2(0,2);
 
 
 	private int faceCount;
@@ -66,7 +67,8 @@ public class Chunk : MonoBehaviour {
 		Vector2 texturePos = new Vector2(0,0);
 		
 		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
 		
 		Cube (texturePos);
 	}
@@ -80,7 +82,8 @@ public class Chunk : MonoBehaviour {
 		Vector2 texturePos = new Vector2(0,0);
 		
 		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
 		
 		Cube (texturePos);
 	}
@@ -94,7 +97,8 @@ public class Chunk : MonoBehaviour {
 		Vector2 texturePos = new Vector2(0,0);
 		
 		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
 		
 		Cube (texturePos);
 	}
@@ -108,7 +112,8 @@ public class Chunk : MonoBehaviour {
 		Vector2 texturePos = new Vector2(0,0);
 		
 		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
+		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
 		
 		Cube (texturePos);
 	}
@@ -122,7 +127,7 @@ public class Chunk : MonoBehaviour {
 		Vector2 texturePos = new Vector2(0,0);
 		
 		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrass;
+		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
 		
 		Cube (texturePos);
 	}
@@ -190,5 +195,14 @@ public class Chunk : MonoBehaviour {
 
 	World.Block GetBlock(int x, int y, int z) {
 		return this.world.GetBlock(x + chunkX, y + chunkY, z + chunkZ);
+	}
+
+	public static Vector3 GetHitBlock(RaycastHit hit) {
+		Vector3 hitPos = hit.point;
+		hitPos += hit.normal * -0.5f;
+		hitPos.x = Mathf.Round(hitPos.x);
+		hitPos.y = Mathf.Round(hitPos.y);
+		hitPos.z = Mathf.Round(hitPos.z);
+		return hitPos;
 	}
 }

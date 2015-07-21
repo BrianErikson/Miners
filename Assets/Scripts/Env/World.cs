@@ -14,7 +14,7 @@ public class World : NetworkBehaviour {
 	public static int worldZ = 64;
 
 	public GameObject chunk;
-	public GameObject[,,] chunks;
+	public Chunk[,,] chunks;
 	public static int chunkSize = 16;
 
 	// Use this for initialization
@@ -38,7 +38,7 @@ public class World : NetworkBehaviour {
 
 		if (isClient) {
 			Cursor.lockState = CursorLockMode.Locked;
-			chunks = new GameObject[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
+			chunks = new Chunk[Mathf.FloorToInt(worldX/chunkSize), Mathf.FloorToInt(worldY/chunkSize), Mathf.FloorToInt(worldZ/chunkSize)];
 			GenerateChunks();
 		}
 	}
@@ -55,8 +55,8 @@ public class World : NetworkBehaviour {
 	}
 
 	[Client]
-	GameObject GenerateChunk(int x, int y, int z) {
-		GameObject go = Instantiate(chunk, new Vector3(x*chunkSize, y*chunkSize, z*chunkSize), new Quaternion(0,0,0,0)) as GameObject;
+	Chunk GenerateChunk(int x, int y, int z) {
+		GameObject go = Instantiate(chunk, new Vector3(x*chunkSize - 0.5f, y*chunkSize + 0.5f, z*chunkSize - 0.5f), new Quaternion(0,0,0,0)) as GameObject;
 		
 		Chunk newChunkScript = go.GetComponent("Chunk") as Chunk;
 		newChunkScript.worldGO = this.gameObject;
@@ -65,7 +65,7 @@ public class World : NetworkBehaviour {
 		newChunkScript.chunkY = y * chunkSize;
 		newChunkScript.chunkZ = z * chunkSize;
 
-		return go;
+		return newChunkScript;
 	}
 	
 	// Update is called once per frame
@@ -78,7 +78,6 @@ public class World : NetworkBehaviour {
 		try {
 			if (data[x, y, z] != Block.AIR) {
 				data[x,y,z] = Block.AIR;
-				//Debug.Log("Server Removed block " + x + " " + y + " " + z);
 
 				RpcRemoveBlock(x, y, z);
 			}
@@ -105,41 +104,33 @@ public class World : NetworkBehaviour {
 		int chunkZ = Mathf.FloorToInt(dz);
 
 		// regenerate chunk that contains block
-		Chunk chunk = chunks[chunkX, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
-		chunk.GenerateMesh();
+		chunks[chunkX, chunkY, chunkZ].GenerateMesh();
 
 		// if on edge of chunk, regenerate neighboring chunk
-		if (dx % 1 < Mathf.Epsilon && chunkX > 0) {
-			Debug.Log("Regenerating chunk x-axis neighbor");
-			chunk = chunks[chunkX - 1, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
-			chunk.GenerateMesh();
+		if(x-(chunkSize*chunkX)==0 && chunkX!=0){
+			chunks[chunkX-1,chunkY, chunkZ].GenerateMesh();
 		}
-		if (dy % 1 < Mathf.Epsilon && chunkY > 0) {
-			Debug.Log("Regenerating chunk y-axis neighbor");
-			chunk = chunks[chunkX, chunkY - 1, chunkZ].GetComponent("Chunk") as Chunk;
-			chunk.GenerateMesh();
+		
+		if(x-(chunkSize*chunkX)==15 && chunkX!=chunks.GetLength(0)-1){
+			chunks[chunkX+1,chunkY, chunkZ].GenerateMesh();
 		}
-		if (dz % 1 < Mathf.Epsilon && chunkZ > 0) {
-			Debug.Log("Regenerating chunk z-axis neighbor");
-			chunk = chunks[chunkX, chunkY, chunkZ - 1].GetComponent("Chunk") as Chunk;
-			chunk.GenerateMesh();
+		
+		if(y-(chunkSize*chunkY)==0 && chunkY!=0){
+			chunks[chunkX,chunkY-1, chunkZ].GenerateMesh();
+		}
+		
+		if(y-(chunkSize*chunkY)==15 && chunkY!=chunks.GetLength(1)-1){
+			chunks[chunkX,chunkY+1, chunkZ].GenerateMesh();
+		}
+		
+		if(z-(chunkSize*chunkZ)==0 && chunkZ!=0){
+			chunks[chunkX,chunkY, chunkZ-1].GenerateMesh();
+		}
+		
+		if(z-(chunkSize*chunkZ)==15 && chunkZ!=chunks.GetLength(2)-1){
+			chunks[chunkX,chunkY, chunkZ+1].GenerateMesh();
 		}
 
-		if (dx + 1 % 1 < Mathf.Epsilon && chunkX > 0) {
-			Debug.Log("Regenerating chunk x-axis neighbor");
-			chunk = chunks[chunkX + 1, chunkY, chunkZ].GetComponent("Chunk") as Chunk;
-			chunk.GenerateMesh();
-		}
-		if (dy + 1 % 1 < Mathf.Epsilon && chunkY > 0) {
-			Debug.Log("Regenerating chunk y-axis neighbor");
-			chunk = chunks[chunkX, chunkY + 1, chunkZ].GetComponent("Chunk") as Chunk;
-			chunk.GenerateMesh();
-		}
-		if (dz + 1 % 1 < Mathf.Epsilon && chunkZ > 0) {
-			Debug.Log("Regenerating chunk z-axis neighbor");
-			chunk = chunks[chunkX, chunkY, chunkZ + 1].GetComponent("Chunk") as Chunk;
-			chunk.GenerateMesh();
-		}
 
 
 		//Debug.Log("Client Removed block " + x + " " + y + " " + z);
