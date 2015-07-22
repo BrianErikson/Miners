@@ -74,6 +74,24 @@ public class World : NetworkBehaviour {
 	}
 
 	[Command]
+	public void CmdAddBlock(Block block, int x, int y, int z) {
+		try {
+			if (data[x, y, z] == Block.AIR) {
+				data[x, y, z] = block;
+
+				RpcAddBlock(block, x, y, z);
+			}
+			else {
+				Debug.LogError("Server could not add block " + x + " " + y + " " + z + ". The block is not air");
+			}
+		}
+		catch (System.IndexOutOfRangeException e) {
+			Debug.LogError("Server could not add block " + x + " " + y + " " + z + ". " + e.Message);
+			return;
+		}
+	}
+
+	[Command]
 	public void CmdRemoveBlock(int x, int y, int z) {
 		try {
 			if (data[x, y, z] != Block.AIR) {
@@ -90,22 +108,19 @@ public class World : NetworkBehaviour {
 			return;
 		}
 	}
-	
-	[ClientRpc]
-	public void RpcRemoveBlock(int x, int y, int z) {
-		data[x,y,z] = Block.AIR; // Sync for client
 
+	public void UpdateChunksForBlock(int x, int y, int z) {
 		float dx = (float)x / (float)chunkSize;
 		float dy = (float)y / (float)chunkSize;
 		float dz = (float)z / (float)chunkSize;
-
+		
 		int chunkX = Mathf.FloorToInt(dx);
 		int chunkY = Mathf.FloorToInt(dy);
 		int chunkZ = Mathf.FloorToInt(dz);
 
 		// regenerate chunk that contains block
 		chunks[chunkX, chunkY, chunkZ].GenerateMesh();
-
+		
 		// if on edge of chunk, regenerate neighboring chunk
 		if(x-(chunkSize*chunkX)==0 && chunkX!=0){
 			chunks[chunkX-1,chunkY, chunkZ].GenerateMesh();
@@ -130,10 +145,18 @@ public class World : NetworkBehaviour {
 		if(z-(chunkSize*chunkZ)==15 && chunkZ!=chunks.GetLength(2)-1){
 			chunks[chunkX,chunkY, chunkZ+1].GenerateMesh();
 		}
+	}
 
-
-
-		//Debug.Log("Client Removed block " + x + " " + y + " " + z);
+	[ClientRpc]
+	public void RpcAddBlock(Block block, int x, int y, int z) {
+		data[x, y, z] = block;
+		UpdateChunksForBlock(x, y, z);
+	}
+	
+	[ClientRpc]
+	public void RpcRemoveBlock(int x, int y, int z) {
+		data[x,y,z] = Block.AIR; // Sync for client
+		UpdateChunksForBlock(x, y, z);
 	}
 
 	public Block GetBlock(int x, int y, int z){
