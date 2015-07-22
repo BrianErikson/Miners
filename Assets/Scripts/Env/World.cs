@@ -1,13 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
+using Miners;
 
 public class World : NetworkBehaviour {
-	public enum Block {
-		AIR,
-		ROCK,
-		GRASS
-	}
-
 	public Block[,,] data;
 	public static int worldX = 64;
 	public static int worldY = 64;
@@ -27,11 +22,13 @@ public class World : NetworkBehaviour {
 			for (int z = 0; z < worldZ; z++) {
 				int stone = PerlinNoise (x, 0, z, 10, 3, 1.2f);
 				stone += PerlinNoise (x, 300, z, 20, 4, 0) + 10;
-				int dirt = PerlinNoise (x, 100, z, 50, 2, 0) + 1;
+				int dirt = PerlinNoise (x, 100, z, 50, 6, 0) + 2;
 
 				for (int y = 0; y < worldY; y++) {
-					if (y <= stone) data[x,y,z] = Block.ROCK;
-					else if (y <=dirt+stone) data[x,y,z] = Block.GRASS;
+					if (y <= stone) data[x,y,z] = new Rock();
+					else if (y < dirt+stone) data[x,y,z] = new Dirt();
+					else if (y == dirt+stone) data[x,y,z] = new Grass();
+					else data[x, y, z] = new Air();
 				}
 			}
 		}
@@ -74,12 +71,12 @@ public class World : NetworkBehaviour {
 	}
 
 	[Command]
-	public void CmdAddBlock(Block block, int x, int y, int z) {
+	public void CmdAddBlock(BlockType type, int x, int y, int z) {
 		try {
-			if (data[x, y, z] == Block.AIR) {
-				data[x, y, z] = block;
+			if (data[x, y, z].type == BlockType.AIR) {
+				data[x, y, z] = GetNewBlock(type);
 
-				RpcAddBlock(block, x, y, z);
+				RpcAddBlock(type, x, y, z);
 			}
 			else {
 				Debug.LogError("Server could not add block " + x + " " + y + " " + z + ". The block is not air");
@@ -94,8 +91,8 @@ public class World : NetworkBehaviour {
 	[Command]
 	public void CmdRemoveBlock(int x, int y, int z) {
 		try {
-			if (data[x, y, z] != Block.AIR) {
-				data[x,y,z] = Block.AIR;
+			if (data[x, y, z].type != BlockType.AIR) {
+				data[x,y,z] = new Air();
 
 				RpcRemoveBlock(x, y, z);
 			}
@@ -148,24 +145,38 @@ public class World : NetworkBehaviour {
 	}
 
 	[ClientRpc]
-	public void RpcAddBlock(Block block, int x, int y, int z) {
-		data[x, y, z] = block;
+	public void RpcAddBlock(BlockType type, int x, int y, int z) {
+		data[x, y, z] = GetNewBlock(type);
 		UpdateChunksForBlock(x, y, z);
 	}
 	
 	[ClientRpc]
 	public void RpcRemoveBlock(int x, int y, int z) {
-		data[x,y,z] = Block.AIR; // Sync for client
+		data[x,y,z] = new Air(); // Sync for client
 		UpdateChunksForBlock(x, y, z);
 	}
 
 	public Block GetBlock(int x, int y, int z){
-		
 		if( x>=worldX || x<0 || y>=worldY || y<0 || z>=worldZ || z<0){
-			return Block.AIR;
+			return new Air();
 		}
 		
 		return data[x,y,z];
+	}
+
+	public Block GetNewBlock(BlockType type) {
+		switch(type) {
+		case BlockType.AIR:
+			return new Air();
+		case BlockType.DIRT:
+			return new Dirt();
+		case BlockType.GRASS:
+			return new Grass();
+		case BlockType.ROCK:
+			return new Rock();
+		default:
+			return new Air();
+		}
 	}
 
 	static int PerlinNoise(int x, int y, int z, float scale, float height, float power) {

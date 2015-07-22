@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using Miners;
 
 public class ActionComponent : NetworkBehaviour {
 	private World world;
@@ -64,7 +65,7 @@ public class ActionComponent : NetworkBehaviour {
 				
 				Debug.Log("Placing block: " + blockCoord.x + " " + blockCoord.y + " " + blockCoord.z);
 				
-				world.CmdAddBlock(World.Block.GRASS, (int)blockCoord.x, (int)blockCoord.y, (int)blockCoord.z);
+				world.CmdAddBlock(BlockType.DIRT, (int)blockCoord.x, (int)blockCoord.y, (int)blockCoord.z);
 			}
 		}
 	}

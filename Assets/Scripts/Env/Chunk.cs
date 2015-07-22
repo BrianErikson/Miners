@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Miners;
 
 public class Chunk : MonoBehaviour {
 	public int chunkSize = 16;
@@ -11,11 +12,6 @@ public class Chunk : MonoBehaviour {
 	private Mesh mesh;
 	
 	private float tUnit = 0.25f;
-	private Vector2 tStone = new Vector2(0,0);
-	private Vector2 tGrass = new Vector2(0,1);
-	private Vector2 tGrassTop = new Vector2(1,1);
-	private Vector2 tGrassBot = new Vector2(0,2);
-
 
 	private int faceCount;
 	private MeshCollider col;
@@ -44,92 +40,58 @@ public class Chunk : MonoBehaviour {
 	
 	}
 
-	void CubeTop(int x, int y, int z, World.Block block) {
+	void CubeTop(int x, int y, int z, Block block) {
 		newVertices.Add(new Vector3 (x,  y,  z + 1));
 		newVertices.Add(new Vector3 (x + 1, y,  z + 1));
 		newVertices.Add(new Vector3 (x + 1, y,  z ));
 		newVertices.Add(new Vector3 (x,  y,  z ));
 		
-		Vector2 texturePos = new Vector2(0,0);
-
-		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrassTop;
-		
-		Cube(texturePos);
+		Cube(block.cubeTex.top);
 	}
 
-	void CubeNorth(int x, int y, int z, World.Block block) {
+	void CubeNorth(int x, int y, int z, Block block) {
 		newVertices.Add(new Vector3 (x + 1, y-1, z + 1));
 		newVertices.Add(new Vector3 (x + 1, y, z + 1));
 		newVertices.Add(new Vector3 (x, y, z + 1));
 		newVertices.Add(new Vector3 (x, y-1, z + 1));
 		
-		Vector2 texturePos = new Vector2(0,0);
-		
-		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
-		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
-		
-		Cube (texturePos);
+		Cube (block.cubeTex.north);
 	}
 
-	void CubeEast(int x, int y, int z, World.Block block) {
+	void CubeEast(int x, int y, int z, Block block) {
 		newVertices.Add(new Vector3 (x + 1, y - 1, z));
 		newVertices.Add(new Vector3 (x + 1, y, z));
 		newVertices.Add(new Vector3 (x + 1, y, z + 1));
 		newVertices.Add(new Vector3 (x + 1, y - 1, z + 1));
 		
-		Vector2 texturePos = new Vector2(0,0);
-		
-		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
-		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
-		
-		Cube (texturePos);
+		Cube (block.cubeTex.east);
 	}
 
-	void CubeSouth(int x, int y, int z, World.Block block) {
+	void CubeSouth(int x, int y, int z, Block block) {
 		newVertices.Add(new Vector3 (x, y - 1, z));
 		newVertices.Add(new Vector3 (x, y, z));
 		newVertices.Add(new Vector3 (x + 1, y, z));
 		newVertices.Add(new Vector3 (x + 1, y - 1, z));
-		
-		Vector2 texturePos = new Vector2(0,0);
-		
-		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
-		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
-		
-		Cube (texturePos);
+
+		Cube (block.cubeTex.south);
 	}
 
-	void CubeWest(int x, int y, int z, World.Block block) {
+	void CubeWest(int x, int y, int z, Block block) {
 		newVertices.Add(new Vector3 (x, y- 1, z + 1));
 		newVertices.Add(new Vector3 (x, y, z + 1));
 		newVertices.Add(new Vector3 (x, y, z));
 		newVertices.Add(new Vector3 (x, y - 1, z));
 		
-		Vector2 texturePos = new Vector2(0,0);
-		
-		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock(x,y,z) == World.Block.GRASS && GetBlock (x,y + 1,z) == World.Block.AIR) texturePos = tGrass;
-		else if (GetBlock(x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
-		
-		Cube (texturePos);
+		Cube (block.cubeTex.west);
 	}
 
-	void CubeBot(int x, int y, int z, World.Block block) {
+	void CubeBot(int x, int y, int z, Block block) {
 		newVertices.Add(new Vector3 (x,  y-1,  z ));
 		newVertices.Add(new Vector3 (x + 1, y-1,  z ));
 		newVertices.Add(new Vector3 (x + 1, y-1,  z + 1));
 		newVertices.Add(new Vector3 (x,  y-1,  z + 1));
 		
-		Vector2 texturePos = new Vector2(0,0);
-		
-		if (GetBlock(x,y,z) == World.Block.ROCK) texturePos = tStone;
-		else if (GetBlock (x,y,z) == World.Block.GRASS) texturePos = tGrassBot;
-		
-		Cube (texturePos);
+		Cube(block.cubeTex.bottom);
 	}
 
 	void UpdateMesh() {
@@ -170,21 +132,21 @@ public class Chunk : MonoBehaviour {
 		for (int x = 0; x < chunkSize; x++) {
 			for (int y = 0; y < chunkSize; y++) {
 				for (int z = 0; z < chunkSize; z++) {
-					World.Block curBlock = GetBlock(x, y, z);
-					if (curBlock != World.Block.AIR) {
+					Block curBlock = GetBlock(x, y, z);
+					if (curBlock.type != BlockType.AIR) {
 						// Checking for exposed sides
 						//above
-						if (GetBlock(x, y + 1, z) == World.Block.AIR) CubeTop(x, y, z, curBlock);
+						if (GetBlock(x, y + 1, z).type == BlockType.AIR) CubeTop(x, y, z, curBlock);
 						//below
-						if (GetBlock(x, y - 1, z) == World.Block.AIR) CubeBot(x, y, z, curBlock);
+						if (GetBlock(x, y - 1, z).type == BlockType.AIR) CubeBot(x, y, z, curBlock);
 						//east
-						if (GetBlock(x + 1, y, z) == World.Block.AIR) CubeEast(x, y, z, curBlock);
+						if (GetBlock(x + 1, y, z).type == BlockType.AIR) CubeEast(x, y, z, curBlock);
 						//west
-						if (GetBlock(x - 1, y, z) == World.Block.AIR) CubeWest(x, y, z, curBlock);
+						if (GetBlock(x - 1, y, z).type == BlockType.AIR) CubeWest(x, y, z, curBlock);
 						//north
-						if (GetBlock(x, y, z + 1) == World.Block.AIR) CubeNorth(x, y, z, curBlock);
+						if (GetBlock(x, y, z + 1).type == BlockType.AIR) CubeNorth(x, y, z, curBlock);
 						//south
-						if (GetBlock(x, y, z - 1) == World.Block.AIR) CubeSouth(x, y, z, curBlock);
+						if (GetBlock(x, y, z - 1).type == BlockType.AIR) CubeSouth(x, y, z, curBlock);
 					}
 				}
 			}
@@ -193,7 +155,7 @@ public class Chunk : MonoBehaviour {
 		UpdateMesh();
 	}
 
-	World.Block GetBlock(int x, int y, int z) {
+	Block GetBlock(int x, int y, int z) {
 		return this.world.GetBlock(x + chunkX, y + chunkY, z + chunkZ);
 	}
 
