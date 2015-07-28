@@ -42,6 +42,10 @@ public class FreemoveCamera : NetworkBehaviour {
 		else if (Input.GetKey(KeyCode.A)) {
 			transform.Translate(-deltaSpeed, 0f, 0f);
 		}
+
+		if (Input.GetKey(KeyCode.Space)) {
+			transform.Translate(0f, deltaSpeed, 0f);
+		}
 	}
 
 	void UpdateMouselook() {
